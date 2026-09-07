@@ -1,0 +1,259 @@
+name: Bootstrap ARIEL roadmap
+
+# One-purpose, idempotent planning bootstrap. No product code is built or deployed.
+# It only creates milestones/labels/issues and adds declared blocking relationships.
+on:
+  push:
+    branches: [main]
+    paths: [.github/workflows/bootstrap-ariel-roadmap.yml]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: ariel-roadmap-bootstrap
+  cancel-in-progress: false
+
+jobs:
+  seed:
+    if: github.repository == 'ichinya/ariel' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Validate plan and create GitHub planning objects
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ARIEL_REPOSITORY: ${{ github.repository }}
+          ARIEL_REF: ${{ github.sha }}
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import base64
+          import graphlib
+          import json
+          import os
+          import re
+          import time
+          import urllib.error
+          import urllib.parse
+          import urllib.request
+
+          REPO = os.environ['ARIEL_REPOSITORY']
+          if REPO != 'ichinya/ariel':
+              raise SystemExit('This bootstrap is scoped to ichinya/ariel only')
+          ROOT = 'https://api.github.com/repos/' + REPO
+          REF = urllib.parse.quote(os.environ['ARIEL_REF'], safe='')
+          TOKEN = os.environ['GH_TOKEN']
+          SUMMARY = os.environ.get('GITHUB_STEP_SUMMARY')
+          MARKER = 'ariel-plan:v1:'
+          headers = {
+              'Authorization': 'Bearer ' + TOKEN,
+              'Accept': 'application/vnd.github+json',
+              'X-GitHub-Api-Version': '2022-11-28',
+              'User-Agent': 'ARIEL-roadmap-bootstrap',
+          }
+          last_write = 0.0
+
+          def api(method, path, payload=None):
+              global last_write
+              if not path.startswith('/') or '://' in path:
+                  raise ValueError('Repository-relative API path required')
+              if method != 'GET':
+                  time.sleep(max(0.0, 1.2 - (time.monotonic() - last_write)))
+                  last_write = time.monotonic()
+              body = None if payload is None else json.dumps(payload, ensure_ascii=False).encode('utf-8')
+              req = urllib.request.Request(ROOT + path, data=body, headers=headers, method=method)
+              try:
+                  with urllib.request.urlopen(req, timeout=45) as response:
+                      raw = response.read()
+                      return json.loads(raw) if raw else None
+              except urllib.error.HTTPError as error:
+                  # Never print authorization or unrestricted payloads. Do not retry
+                  # an ambiguous write: rerun discovers completed objects by marker.
+                  raise RuntimeError(f'GitHub {method} {path}: HTTP {error.code}') from None
+
+          def pages(path):
+              result = []
+              sep = '&' if '?' in path else '?'
+              for page in range(1, 101):
+                  batch = api('GET', f'{path}{sep}per_page=100&page={page}')
+                  if not isinstance(batch, list):
+                      raise TypeError('Expected paginated list')
+                  result.extend(batch)
+                  if len(batch) < 100:
+                      return result
+              raise RuntimeError('Pagination exceeded safety bound')
+
+          groups = []
+          for number in range(7):
+              blob = api('GET', f'/contents/planning/backlog/m{number}.json?ref={REF}')
+              if blob.get('encoding') != 'base64':
+                  raise ValueError('Expected base64 plan file')
+              groups.append(json.loads(base64.b64decode(blob['content'])))
+
+          specs = {}
+          milestones_spec = {}
+          for group in groups:
+              milestone = group['milestone']
+              key = milestone['key']
+              if key in milestones_spec:
+                  raise ValueError('Duplicate milestone key')
+              milestones_spec[key] = milestone
+              for original in group['issues']:
+                  item = dict(original)
+                  item['milestone_key'] = key
+                  if item['key'] in specs:
+                      raise ValueError('Duplicate issue key: ' + item['key'])
+                  if not item['goal'] or not item['requirements'] or not item['acceptance']:
+                      raise ValueError('Incomplete issue: ' + item['key'])
+                  specs[item['key']] = item
+          for key, item in specs.items():
+              for dependency in item['depends_on']:
+                  if dependency not in specs:
+                      raise ValueError(f'Unknown dependency {key} -> {dependency}')
+          graph = {key: tuple(item['depends_on']) for key, item in specs.items()}
+          order = list(graphlib.TopologicalSorter(graph).static_order())
+          if len(order) != len(specs):
+              raise ValueError('Invalid issue dependency graph')
+          print(f'Validated {len(groups)} milestones, {len(specs)} features, {sum(map(len, graph.values()))} dependency edges', flush=True)
+
+          # Existing planning objects are reused, not renamed, deleted or reopened.
+          milestones = {m['title']: m for m in pages('/milestones?state=all')}
+          milestone_ids = {}
+          for key, spec in milestones_spec.items():
+              found = milestones.get(spec['title'])
+              if found is None:
+                  found = api('POST', '/milestones', {
+                      'title': spec['title'], 'description': spec['description'], 'state': 'open',
+                  })
+              milestone_ids[key] = found['number']
+              print(f'Milestone {key}: {found["html_url"]}', flush=True)
+
+          wanted_labels = {
+              'type: feature': ('1D76DB', 'One independently deliverable feature'),
+              'type: design': ('5319E7', 'Architecture or product decision'),
+              'type: research': ('D4C5F9', 'Evidence-based spike before implementation'),
+              'type: roadmap': ('0E8A16', 'Navigation issue, not an implementation task'),
+          }
+          for item in specs.values():
+              wanted_labels['area: ' + item['area']] = ('DDEEFF', 'ARIEL ' + item['area'] + ' workstream')
+          existing_labels = {label['name'] for label in pages('/labels')}
+          for name, (color, description) in wanted_labels.items():
+              if name not in existing_labels:
+                  api('POST', '/labels', {'name': name, 'color': color, 'description': description})
+
+          existing = {}
+          root_issue = None
+          for issue in pages('/issues?state=all'):
+              if 'pull_request' in issue:
+                  continue
+              match = re.search(r'<!-- ariel-plan:v1:([a-z0-9-]+) -->', issue.get('body') or '')
+              if match:
+                  key = match.group(1)
+                  if key == 'roadmap':
+                      root_issue = issue
+                  elif key in existing:
+                      raise ValueError('Duplicate existing planning marker: ' + key)
+                  else:
+                      existing[key] = issue
+          if root_issue is None:
+              root_issue = api('POST', '/issues', {
+                  'title': 'ARIEL roadmap: независимое реле агентов — milestones и порядок реализации',
+                  'body': '<!-- ariel-plan:v1:roadmap -->\n\nИндекс milestones и отдельных задач ARIEL. Заполняется текущим planning bootstrap после создания связанных issues. Реализация продукта ещё не начата.',
+                  'labels': ['type: roadmap'],
+              })
+          root_number = root_issue['number']
+          resolved = {}
+          created_count = 0
+          for key in order:
+              item = specs[key]
+              found = existing.get(key)
+              if found is None:
+                  dependencies = ', '.join('#' + str(resolved[d]['number']) for d in item['depends_on']) or 'Нет — можно начинать независимо.'
+                  source_lines = '\n'.join('- ' + url for url in item.get('references', [])) or 'Основание: согласованная концепция ARIEL; требования полностью описаны в этом issue.'
+                  body = (
+                      f'<!-- {MARKER}{key} -->\n\n'
+                      '## Цель\n\n' + item['goal'] + '\n\n'
+                      '## Требования\n\n' + '\n'.join('- ' + text for text in item['requirements']) + '\n\n'
+                      '## Критерии готовности\n\n' + '\n'.join('- [ ] ' + text for text in item['acceptance']) + '\n\n'
+                      '## Связи и порядок\n\n'
+                      f'- Roadmap: #{root_number}.\n'
+                      f'- Milestone: **{milestones_spec[item["milestone_key"]]["title"]}**.\n'
+                      f'- **Blocked by:** {dependencies}\n'
+                      '- Зависимости обозначают необходимые контракты/возможности для завершения; не обязательно ждать весь предыдущий milestone. Проектирование и mocks допускаются параллельно.\n'
+                      '- Следующие задачи видны через GitHub Relationships → Blocking и обратные ссылки.\n\n'
+                      '## Контекст и первоисточники\n\n' + source_lines + '\n\n'
+                      'Ссылки на Orkora — optional integration context и могут требовать доступа. Публичные acceptance criteria ARIEL не зависят от доступа к private исходникам.\n'
+                  )
+                  found = api('POST', '/issues', {
+                      'title': item['title'], 'body': body,
+                      'milestone': milestone_ids[item['milestone_key']],
+                      'labels': ['type: ' + item['kind'], 'area: ' + item['area']],
+                  })
+                  created_count += 1
+              resolved[key] = found
+              print(f'Issue {key}: #{found["number"]}', flush=True)
+
+          # Build native dependency edges. Validate the whole DAG before writes.
+          failures = []
+          verified_edges = 0
+          for key in order:
+              current = resolved[key]
+              requested = specs[key]['depends_on']
+              if not requested:
+                  continue
+              try:
+                  path = f'/issues/{current["number"]}/dependencies/blocked_by'
+                  present = {value['id'] for value in pages(path)}
+                  for dependency in requested:
+                      source = resolved[dependency]
+                      if source['id'] not in present:
+                          api('POST', path, {'issue_id': source['id']})
+                          present.add(source['id'])
+                  actual = {value['id'] for value in pages(path)}
+                  expected = {resolved[d]['id'] for d in requested}
+                  if not expected.issubset(actual):
+                      raise RuntimeError('Dependency readback mismatch')
+                  verified_edges += len(requested)
+              except RuntimeError as error:
+                  failures.append(f'#{current["number"]}: {error}')
+                  print(f'Dependency warning for #{current["number"]}: {error}', flush=True)
+
+          root_body = [
+              '<!-- ariel-plan:v1:roadmap -->',
+              '# ARIEL / Ариель — roadmap',
+              '**Agent Relay & Execution Layer.** Русская игра названия: «агент, реле и ель».',
+              'Независимый публичный execution-продукт: подключается к controller за задачами либо предоставляет собственный authenticated API. Orkora управляет экспертами, людьми, workflow и выбором модели; ARIEL объявляет возможности, соблюдает grants и выполняет конкретное назначение. Задачер и другие приложения могут использовать его без Orkora.',
+              f'**План:** {len(specs)} отдельных задач, {len(groups)} milestones. Этот issue — только навигационный индекс и не входит в milestone. Сроки не назначены: они не согласованы. Всё перечисленное — backlog, не уже реализованные функции.',
+              '## Как работать с зависимостями',
+              'Один issue — одна возможность, adapter, архитектурное решение или проверка. Blocked by отражает необходимые контракты/возможности; независимые ветки можно делать параллельно. Milestone не является глобальным mutex. Roadmap не блокирует дочерние задачи.',
+              f'Нативные GitHub blocking relationships проверены чтением: **{verified_edges}**. Текстовые ссылки Blocked by также сохранены в каждом issue.',
+              '## Ключевые границы',
+              '- Provider/model credentials остаются на узле; разрешённые auth-режимы проверяются отдельно. Наличие подписки не означает право превратить её в произвольный third-party API.\n- Два профиля Claude Code (GLM и Opus) имеют разные настройки/auth/session scopes. Runtime не равен модели.\n- Unknown model не получает автоматические задания или evaluation.\n- Urgent/fallback не обходят hard quality/locality/security ограничения; модель выбирает controller.\n- Код и commit создаются на узле; push optional, merge/review/публикация остаются у приложения.\n- Answer/research/analysis не требуют Git. Инструменты приложения возвращаются как tool calls/continuations, а не исполняются произвольно в shell.\n- Worktree — не sandbox; permissions, secret isolation и cancellation входят в MVP.',
+          ]
+          for group in groups:
+              milestone = group['milestone']
+              number = milestone_ids[milestone['key']]
+              root_body.append(f'## [{milestone["title"]}](https://github.com/{REPO}/milestone/{number})')
+              root_body.append(milestone['description'])
+              for item in group['issues']:
+                  root_body.append(f'- [ ] #{resolved[item["key"]]["number"]} — {item["title"]}')
+          root_body.extend([
+              '## Первый vertical slice',
+              'Контракты → CLI/config + local secrets → pairing + outbound channel → durable job + sandbox/policy → один local inference adapter → answer 2+2 → events/receipt → reconnect/cancel. Далее выбранный coding runtime + worktree + local commit/diff. Не нужно ждать все adapters, UI, GPU fleet и shadow evaluation для первого рабочего пути.',
+              '## Управление самим планом',
+              'Первоначальные определения находятся в planning/backlog/m0.json … m6.json. Bootstrap повторно использует объекты по stable markers, не удаляет и не переоткрывает пользовательские issues и не перезаписывает их описания. После создания canonical рабочий backlog — GitHub Issues; изменение JSON не обновляет существующий issue автоматически.',
+          ])
+          if failures:
+              root_body.append('## Неприменённые нативные зависимости\n\n' + '\n'.join('- ' + failure for failure in failures))
+          api('PATCH', f'/issues/{root_number}', {'body': '\n\n'.join(root_body)})
+          summary = f'Roadmap: {root_issue["html_url"]}\nMilestones: {len(groups)}\nFeatures: {len(specs)}\nCreated features this run: {created_count}\nVerified blocking edges: {verified_edges}\nDependency failures: {len(failures)}\n'
+          print(summary, flush=True)
+          if SUMMARY:
+              with open(SUMMARY, 'a', encoding='utf-8') as output:
+                  output.write(summary)
+          if failures:
+              raise SystemExit('Issues/milestones created; some native dependency writes need review')
+          PY
