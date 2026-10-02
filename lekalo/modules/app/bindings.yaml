@@ -1,0 +1,141 @@
+{
+  "schema_version": "0.2.16",
+  "definitions": [
+    {
+      "id": "app.agents_http",
+      "kind": "endpoint",
+      "version": 1,
+      "invokes": "app.list_agents",
+      "method": "GET",
+      "path": "/v1/agents"
+    },
+    {
+      "id": "app.models_http",
+      "kind": "endpoint",
+      "version": 1,
+      "invokes": "app.list_models",
+      "method": "GET",
+      "path": "/v1/agents/{agent_id}/models"
+    },
+    {
+      "id": "app.sessions_http",
+      "kind": "endpoint",
+      "version": 1,
+      "invokes": "app.start_session",
+      "method": "POST",
+      "path": "/v1/sessions"
+    },
+    {
+      "id": "app.jobs_http",
+      "kind": "endpoint",
+      "version": 1,
+      "invokes": "app.submit_job",
+      "method": "POST",
+      "path": "/v1/jobs"
+    },
+    {
+      "id": "app.job_status_http",
+      "kind": "endpoint",
+      "version": 1,
+      "invokes": "app.get_job",
+      "method": "GET",
+      "path": "/v1/jobs/{job_id}"
+    },
+    {
+      "id": "app.cancel_http",
+      "kind": "endpoint",
+      "version": 1,
+      "invokes": "app.cancel_job",
+      "method": "POST",
+      "path": "/v1/jobs/{job_id}/cancel"
+    },
+    {
+      "id": "app.events_http",
+      "kind": "endpoint",
+      "version": 1,
+      "invokes": "app.get_events",
+      "method": "GET",
+      "path": "/v1/jobs/{job_id}/events"
+    },
+    {
+      "id": "app.access_http",
+      "kind": "endpoint",
+      "version": 1,
+      "invokes": "app.decide_path_access",
+      "method": "POST",
+      "path": "/v1/access-requests/{request_id}/decision"
+    },
+    {
+      "version": 1,
+      "id": "app.workspaces_http",
+      "kind": "endpoint",
+      "invokes": "app.prepare_workspace",
+      "method": "POST",
+      "path": "/v1/workspaces"
+    },
+    {
+      "version": 1,
+      "id": "app.workspace_list_http",
+      "kind": "endpoint",
+      "invokes": "app.list_workspaces",
+      "method": "GET",
+      "path": "/v1/workspaces"
+    },
+    {
+      "version": 1,
+      "id": "app.questions_http",
+      "kind": "endpoint",
+      "invokes": "app.list_questions",
+      "method": "GET",
+      "path": "/v1/questions"
+    },
+    {
+      "version": 1,
+      "id": "app.question_answer_http",
+      "kind": "endpoint",
+      "invokes": "app.answer_question",
+      "method": "POST",
+      "path": "/v1/questions/{question_id}/answer"
+    },
+    {
+      "version": 1,
+      "id": "app.grant_revoke_http",
+      "kind": "endpoint",
+      "invokes": "app.revoke_path_grant",
+      "method": "POST",
+      "path": "/v1/workspaces/{workspace_id}/grants/{grant_id}/revoke"
+    },
+    {
+      "version": 1,
+      "id": "app.provider_settings_http",
+      "kind": "endpoint",
+      "invokes": "app.configure_provider",
+      "method": "PUT",
+      "path": "/v1/admin/providers/{provider_id}"
+    },
+    {
+      "version": 1,
+      "id": "app.model_settings_http",
+      "kind": "endpoint",
+      "invokes": "app.configure_model",
+      "method": "PUT",
+      "path": "/v1/admin/models/{selection_id}"
+    },
+    {
+      "version": 1,
+      "id": "app.session_list_http",
+      "kind": "endpoint",
+      "invokes": "app.list_sessions",
+      "method": "GET",
+      "path": "/v1/sessions"
+    },
+    {
+      "version": 1,
+      "id": "app.job_list_http",
+      "kind": "endpoint",
+      "invokes": "app.list_jobs",
+      "method": "GET",
+      "path": "/v1/jobs"
+    }
+  ]
+}

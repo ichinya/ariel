@@ -1,0 +1,84 @@
+{
+  "schema_version": "0.2.16",
+  "definitions": [
+    {
+      "id": "app.catalog_allowlist",
+      "kind": "scenario",
+      "version": 1,
+      "summary": "Owner enables one provider/model; the client sees only admitted selections. Forged disabled IDs are rejected server-side.",
+      "covers": [
+        "app.configure_provider",
+        "app.configure_model",
+        "app.list_models",
+        "app.start_session"
+      ]
+    },
+    {
+      "id": "app.pi_job",
+      "kind": "scenario",
+      "version": 1,
+      "summary": "A test client submits a real instruction; Pi edits a fixture in its workspace and returns streamed progress and a terminal result.",
+      "covers": [
+        "app.prepare_workspace",
+        "app.start_session",
+        "app.submit_job",
+        "app.get_job",
+        "app.get_events"
+      ]
+    },
+    {
+      "id": "app.outside_workspace_denied",
+      "kind": "scenario",
+      "version": 1,
+      "summary": "Pi and child processes cannot access sibling host files through absolute paths, traversal, symlinks or shell tools.",
+      "covers": [
+        "app.workspace",
+        "app.path_access_request",
+        "app.prepare_workspace"
+      ]
+    },
+    {
+      "id": "app.explicit_path_grant",
+      "kind": "scenario",
+      "version": 1,
+      "summary": "An exact non-expired owner decision allows only the named path and access mode in a new checked isolation generation.",
+      "covers": [
+        "app.path_access_request",
+        "app.decide_path_access",
+        "app.path_access_decided"
+      ]
+    },
+    {
+      "id": "app.cancel_and_late_result",
+      "kind": "scenario",
+      "version": 1,
+      "summary": "Cancel is idempotent; late events cannot revive the job or another session; writers are stopped before workspace reuse.",
+      "covers": [
+        "app.cancel_job",
+        "app.job",
+        "app.workspace"
+      ]
+    },
+    {
+      "id": "app.reconnect_and_restart",
+      "kind": "scenario",
+      "version": 1,
+      "summary": "UI reconnect replays durable events without re-dispatch. Unrecoverable active work becomes interrupted after daemon restart.",
+      "covers": [
+        "app.job",
+        "app.session",
+        "app.get_events"
+      ]
+    },
+    {
+      "id": "app.worktree_boundary",
+      "kind": "scenario",
+      "version": 1,
+      "summary": "An isolated worktree preserves a dirty source checkout and grants no access to sibling worktrees or shared Git metadata.",
+      "covers": [
+        "app.workspace",
+        "app.prepare_workspace"
+      ]
+    }
+  ]
+}

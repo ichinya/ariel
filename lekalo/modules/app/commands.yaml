@@ -1,0 +1,358 @@
+{
+  "schema_version": "0.2.16",
+  "definitions": [
+    {
+      "id": "app.configure_provider_record",
+      "kind": "effect",
+      "version": 1,
+      "operation": "update",
+      "entity": "app.provider",
+      "emits": [
+        "app.provider_configured"
+      ]
+    },
+    {
+      "id": "app.configure_provider",
+      "kind": "command",
+      "version": 1,
+      "description": "Owner enables or disables a configured provider; availability is checked separately.",
+      "input": [
+        {
+          "name": "provider_id",
+          "type": {
+            "ref": "app.text"
+          },
+          "required": true
+        },
+        {
+          "name": "enabled",
+          "type": {
+            "ref": "app.enabled"
+          },
+          "required": true
+        }
+      ],
+      "effects": [
+        "app.configure_provider_record"
+      ]
+    },
+    {
+      "id": "app.configure_model_record",
+      "kind": "effect",
+      "version": 1,
+      "operation": "update",
+      "entity": "app.model",
+      "emits": [
+        "app.model_configured"
+      ]
+    },
+    {
+      "id": "app.configure_model",
+      "kind": "command",
+      "version": 1,
+      "description": "Owner updates one exact model allowlist entry; wildcard enable is not implied.",
+      "input": [
+        {
+          "name": "agent_id",
+          "type": {
+            "ref": "app.text"
+          },
+          "required": true
+        },
+        {
+          "name": "provider_id",
+          "type": {
+            "ref": "app.text"
+          },
+          "required": true
+        },
+        {
+          "name": "model_id",
+          "type": {
+            "ref": "app.text"
+          },
+          "required": true
+        },
+        {
+          "name": "enabled",
+          "type": {
+            "ref": "app.enabled"
+          },
+          "required": true
+        }
+      ],
+      "effects": [
+        "app.configure_model_record"
+      ]
+    },
+    {
+      "id": "app.prepare_workspace_record",
+      "kind": "effect",
+      "version": 1,
+      "operation": "create",
+      "entity": "app.workspace",
+      "emits": [
+        "app.workspace_prepared"
+      ]
+    },
+    {
+      "id": "app.prepare_workspace",
+      "kind": "command",
+      "version": 1,
+      "description": "Create an owned folder or exact-HEAD worktree with its own Git store; Docker admission verifies isolation before Pi prompt dispatch.",
+      "input": [
+        {
+          "name": "mode",
+          "type": {
+            "ref": "app.workspace_mode"
+          },
+          "required": true
+        },
+        {
+          "name": "source_ref",
+          "type": {
+            "optional": {
+              "ref": "app.text"
+            }
+          }
+        }
+      ],
+      "effects": [
+        "app.prepare_workspace_record"
+      ]
+    },
+    {
+      "id": "app.start_session_record",
+      "kind": "effect",
+      "version": 1,
+      "operation": "create",
+      "entity": "app.session",
+      "emits": [
+        "app.session_started"
+      ]
+    },
+    {
+      "id": "app.start_session",
+      "kind": "command",
+      "version": 1,
+      "description": "Persist an immutable exact provider/model and client-owned workspace binding. Runtime startup later confirms the selection through Pi RPC.",
+      "input": [
+        {
+          "name": "agent_id",
+          "type": {
+            "ref": "app.text"
+          },
+          "required": true
+        },
+        {
+          "name": "provider_id",
+          "type": {
+            "ref": "app.text"
+          },
+          "required": true
+        },
+        {
+          "name": "model_id",
+          "type": {
+            "ref": "app.text"
+          },
+          "required": true
+        },
+        {
+          "name": "workspace_id",
+          "type": {
+            "ref": "app.id"
+          },
+          "required": true
+        }
+      ],
+      "effects": [
+        "app.start_session_record"
+      ]
+    },
+    {
+      "id": "app.submit_job_record",
+      "kind": "effect",
+      "version": 1,
+      "operation": "create",
+      "entity": "app.job",
+      "emits": [
+        "app.job_submitted"
+      ]
+    },
+    {
+      "id": "app.submit_job",
+      "kind": "command",
+      "version": 1,
+      "description": "Persist and dispatch work to the bound Pi session; Pi owns the internal tool loop.",
+      "input": [
+        {
+          "name": "session_id",
+          "type": {
+            "ref": "app.id"
+          },
+          "required": true
+        },
+        {
+          "name": "input",
+          "type": {
+            "ref": "app.text"
+          },
+          "required": true
+        },
+        {
+          "name": "idempotency_key",
+          "type": {
+            "ref": "app.text"
+          },
+          "required": true
+        }
+      ],
+      "effects": [
+        "app.submit_job_record"
+      ]
+    },
+    {
+      "id": "app.cancel_job_record",
+      "kind": "effect",
+      "version": 1,
+      "operation": "update",
+      "entity": "app.job",
+      "emits": [
+        "app.job_cancel_requested"
+      ]
+    },
+    {
+      "id": "app.cancel_job",
+      "kind": "command",
+      "version": 1,
+      "description": "Request cancellation; terminal confirmation follows supervised stopping and reconciliation.",
+      "input": [
+        {
+          "name": "job_id",
+          "type": {
+            "ref": "app.id"
+          },
+          "required": true
+        }
+      ],
+      "effects": [
+        "app.cancel_job_record"
+      ]
+    },
+    {
+      "id": "app.decide_path_access_record",
+      "kind": "effect",
+      "version": 1,
+      "operation": "update",
+      "entity": "app.path_access_request",
+      "emits": [
+        "app.path_access_decided"
+      ]
+    },
+    {
+      "id": "app.decide_path_access",
+      "kind": "command",
+      "version": 1,
+      "description": "Human owner resolves an exact digest-bound pending path question. An allowed one-hour session grant stops the current attempt; the client explicitly submits the next turn.",
+      "input": [
+        {
+          "name": "request_id",
+          "type": {
+            "ref": "app.id"
+          },
+          "required": true
+        },
+        {
+          "name": "request_digest",
+          "type": {
+            "ref": "app.text"
+          },
+          "required": true
+        },
+        {
+          "name": "decision",
+          "type": {
+            "ref": "app.access_decision"
+          },
+          "required": true
+        }
+      ],
+      "effects": [
+        "app.decide_path_access_record"
+      ]
+    },
+    {
+      "version": 1,
+      "id": "app.answer_question_record",
+      "kind": "effect",
+      "operation": "update",
+      "entity": "app.attention_request"
+    },
+    {
+      "version": 1,
+      "id": "app.answer_question",
+      "kind": "command",
+      "description": "Atomically settle a matching pending question and resume only its current waiting attempt; late answers cannot resurrect terminal jobs.",
+      "input": [
+        {
+          "name": "question_id",
+          "type": {
+            "ref": "app.id"
+          },
+          "required": true
+        },
+        {
+          "name": "request_digest",
+          "type": {
+            "ref": "app.text"
+          },
+          "required": true
+        },
+        {
+          "name": "value",
+          "type": {
+            "optional": {
+              "ref": "app.text"
+            }
+          }
+        }
+      ],
+      "effects": [
+        "app.answer_question_record"
+      ]
+    },
+    {
+      "version": 1,
+      "id": "app.revoke_path_grant_record",
+      "kind": "effect",
+      "operation": "update",
+      "entity": "app.workspace"
+    },
+    {
+      "version": 1,
+      "id": "app.revoke_path_grant",
+      "kind": "command",
+      "description": "Owner revokes the grant, increments workspace generation and stops affected active jobs before any next turn.",
+      "input": [
+        {
+          "name": "workspace_id",
+          "type": {
+            "ref": "app.id"
+          },
+          "required": true
+        },
+        {
+          "name": "grant_id",
+          "type": {
+            "ref": "app.id"
+          },
+          "required": true
+        }
+      ],
+      "effects": [
+        "app.revoke_path_grant_record"
+      ]
+    }
+  ]
+}

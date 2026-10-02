@@ -1,0 +1,6 @@
+schema_version: "0.2.16"
+definitions:
+  - id: ariel
+    kind: project
+    version: 1
+    description: "Independent agent execution service. First MVP: owner-selected Pi models and confined workspaces."

@@ -1,0 +1,818 @@
+{
+  "schema_version": "0.2.16",
+  "definitions": [
+    {
+      "id": "app.id",
+      "kind": "scalar",
+      "version": 1,
+      "base": "uuid"
+    },
+    {
+      "id": "app.text",
+      "kind": "scalar",
+      "version": 1,
+      "base": "string"
+    },
+    {
+      "id": "app.timestamp",
+      "kind": "scalar",
+      "version": 1,
+      "base": "number",
+      "description": "Unix time in seconds in the v1 HTTP DTOs."
+    },
+    {
+      "id": "app.enabled",
+      "kind": "enum",
+      "version": 1,
+      "values": [
+        {
+          "value": "disabled"
+        },
+        {
+          "value": "enabled"
+        }
+      ]
+    },
+    {
+      "id": "app.readiness",
+      "kind": "enum",
+      "version": 1,
+      "values": [
+        {
+          "value": "unavailable"
+        },
+        {
+          "value": "auth_required"
+        },
+        {
+          "value": "unverified"
+        },
+        {
+          "value": "ready"
+        },
+        {
+          "value": "blocked"
+        },
+        {
+          "value": "disabled"
+        },
+        {
+          "value": "runtime_unavailable"
+        }
+      ]
+    },
+    {
+      "id": "app.workspace_mode",
+      "kind": "enum",
+      "version": 1,
+      "values": [
+        {
+          "value": "folder"
+        },
+        {
+          "value": "worktree"
+        }
+      ]
+    },
+    {
+      "id": "app.job_state",
+      "kind": "enum",
+      "version": 1,
+      "values": [
+        {
+          "value": "queued"
+        },
+        {
+          "value": "running"
+        },
+        {
+          "value": "waiting_input"
+        },
+        {
+          "value": "cancelling"
+        },
+        {
+          "value": "succeeded"
+        },
+        {
+          "value": "failed"
+        },
+        {
+          "value": "cancelled"
+        },
+        {
+          "value": "interrupted"
+        }
+      ]
+    },
+    {
+      "id": "app.access_mode",
+      "kind": "enum",
+      "version": 1,
+      "values": [
+        {
+          "value": "read"
+        },
+        {
+          "value": "write"
+        }
+      ]
+    },
+    {
+      "id": "app.access_decision",
+      "kind": "enum",
+      "version": 1,
+      "values": [
+        {
+          "value": "allowed"
+        },
+        {
+          "value": "denied"
+        }
+      ]
+    },
+    {
+      "id": "app.decision_state",
+      "kind": "enum",
+      "version": 1,
+      "values": [
+        {
+          "value": "pending"
+        },
+        {
+          "value": "allowed"
+        },
+        {
+          "value": "denied"
+        },
+        {
+          "value": "expired"
+        },
+        {
+          "value": "superseded"
+        }
+      ]
+    },
+    {
+      "id": "app.agent",
+      "kind": "entity",
+      "version": 1,
+      "description": "Installed runtime adapter; Pi native RPC is the first implementation.",
+      "fields": [
+        {
+          "name": "id",
+          "type": {
+            "ref": "app.text"
+          },
+          "required": true
+        },
+        {
+          "name": "runtime_version",
+          "type": {
+            "ref": "app.text"
+          },
+          "required": true
+        },
+        {
+          "name": "transport",
+          "type": {
+            "ref": "app.text"
+          },
+          "required": true
+        },
+        {
+          "name": "readiness",
+          "type": {
+            "ref": "app.readiness"
+          },
+          "required": true
+        }
+      ],
+      "identity": [
+        "id"
+      ]
+    },
+    {
+      "id": "app.provider",
+      "kind": "entity",
+      "version": 1,
+      "description": "Owner-controlled provider configuration with an opaque credential reference.",
+      "fields": [
+        {
+          "name": "id",
+          "type": {
+            "ref": "app.text"
+          },
+          "required": true
+        },
+        {
+          "name": "enabled",
+          "type": {
+            "ref": "app.enabled"
+          },
+          "required": true
+        },
+        {
+          "name": "readiness",
+          "type": {
+            "ref": "app.readiness"
+          },
+          "required": true
+        },
+        {
+          "name": "credential_ref",
+          "type": {
+            "optional": {
+              "ref": "app.text"
+            }
+          }
+        }
+      ],
+      "identity": [
+        "id"
+      ]
+    },
+    {
+      "id": "app.model",
+      "kind": "entity",
+      "version": 1,
+      "description": "Exact agent/provider/model catalog entry; discovery alone grants no execution.",
+      "fields": [
+        {
+          "name": "agent_id",
+          "type": {
+            "ref": "app.text"
+          },
+          "required": true
+        },
+        {
+          "name": "provider_id",
+          "type": {
+            "ref": "app.text"
+          },
+          "required": true
+        },
+        {
+          "name": "model_id",
+          "type": {
+            "ref": "app.text"
+          },
+          "required": true
+        },
+        {
+          "name": "enabled",
+          "type": {
+            "ref": "app.enabled"
+          },
+          "required": true
+        },
+        {
+          "name": "readiness",
+          "type": {
+            "ref": "app.readiness"
+          },
+          "required": true
+        },
+        {
+          "name": "catalog_revision",
+          "type": {
+            "ref": "app.text"
+          },
+          "required": true
+        }
+      ],
+      "identity": [
+        "agent_id",
+        "provider_id",
+        "model_id"
+      ]
+    },
+    {
+      "id": "app.workspace",
+      "kind": "entity",
+      "version": 1,
+      "description": "Managed folder or Git worktree; filesystem enforcement belongs to the sandbox backend.",
+      "fields": [
+        {
+          "name": "id",
+          "type": {
+            "ref": "app.id"
+          },
+          "required": true
+        },
+        {
+          "name": "mode",
+          "type": {
+            "ref": "app.workspace_mode"
+          },
+          "required": true
+        },
+        {
+          "name": "generation",
+          "type": {
+            "ref": "app.counter"
+          },
+          "required": true
+        },
+        {
+          "name": "source_revision",
+          "type": {
+            "optional": {
+              "ref": "app.text"
+            }
+          }
+        },
+        {
+          "name": "isolation_revision",
+          "type": {
+            "optional": {
+              "ref": "app.text"
+            }
+          }
+        }
+      ],
+      "identity": [
+        "id"
+      ]
+    },
+    {
+      "id": "app.session",
+      "kind": "entity",
+      "version": 1,
+      "description": "One client-owned Pi session with an immutable model and workspace binding.",
+      "fields": [
+        {
+          "name": "id",
+          "type": {
+            "ref": "app.id"
+          },
+          "required": true
+        },
+        {
+          "name": "client_id",
+          "type": {
+            "ref": "app.text"
+          },
+          "required": true
+        },
+        {
+          "name": "agent_id",
+          "type": {
+            "ref": "app.text"
+          },
+          "required": true
+        },
+        {
+          "name": "provider_id",
+          "type": {
+            "ref": "app.text"
+          },
+          "required": true
+        },
+        {
+          "name": "model_id",
+          "type": {
+            "ref": "app.text"
+          },
+          "required": true
+        },
+        {
+          "name": "workspace_id",
+          "type": {
+            "ref": "app.id"
+          },
+          "required": true
+        },
+        {
+          "name": "profile_revision",
+          "type": {
+            "ref": "app.text"
+          },
+          "required": true
+        }
+      ],
+      "identity": [
+        "id"
+      ]
+    },
+    {
+      "id": "app.job",
+      "kind": "entity",
+      "version": 1,
+      "description": "One user instruction with durable state; accepted and terminal result are separate facts.",
+      "fields": [
+        {
+          "name": "attempt_id",
+          "type": {
+            "ref": "app.id"
+          },
+          "required": true
+        },
+        {
+          "name": "id",
+          "type": {
+            "ref": "app.id"
+          },
+          "required": true
+        },
+        {
+          "name": "session_id",
+          "type": {
+            "ref": "app.id"
+          },
+          "required": true
+        },
+        {
+          "name": "input",
+          "type": {
+            "ref": "app.text"
+          },
+          "required": true
+        },
+        {
+          "name": "idempotency_key",
+          "type": {
+            "ref": "app.text"
+          },
+          "required": true
+        },
+        {
+          "name": "state",
+          "type": {
+            "ref": "app.job_state"
+          },
+          "required": true
+        },
+        {
+          "name": "result_ref",
+          "type": {
+            "optional": {
+              "ref": "app.text"
+            }
+          }
+        }
+      ],
+      "identity": [
+        "id"
+      ]
+    },
+    {
+      "id": "app.path_access_request",
+      "kind": "entity",
+      "version": 1,
+      "description": "Exact request to expand workspace access; denial and silence do not grant access.",
+      "fields": [
+        {
+          "name": "attempt_id",
+          "type": {
+            "ref": "app.id"
+          },
+          "required": true
+        },
+        {
+          "name": "workspace_generation",
+          "type": {
+            "ref": "app.counter"
+          },
+          "required": true
+        },
+        {
+          "name": "id",
+          "type": {
+            "ref": "app.id"
+          },
+          "required": true
+        },
+        {
+          "name": "job_id",
+          "type": {
+            "ref": "app.id"
+          },
+          "required": true
+        },
+        {
+          "name": "workspace_id",
+          "type": {
+            "ref": "app.id"
+          },
+          "required": true
+        },
+        {
+          "name": "path_ref",
+          "type": {
+            "ref": "app.text"
+          },
+          "required": true
+        },
+        {
+          "name": "access",
+          "type": {
+            "ref": "app.access_mode"
+          },
+          "required": true
+        },
+        {
+          "name": "request_digest",
+          "type": {
+            "ref": "app.text"
+          },
+          "required": true
+        },
+        {
+          "name": "state",
+          "type": {
+            "ref": "app.decision_state"
+          },
+          "required": true
+        },
+        {
+          "name": "expires_at",
+          "type": {
+            "ref": "app.timestamp"
+          },
+          "required": true
+        }
+      ],
+      "identity": [
+        "id"
+      ]
+    },
+    {
+      "id": "app.execution_event",
+      "kind": "entity",
+      "version": 1,
+      "description": "Durable ordered projection, excluding provider credentials and hidden reasoning.",
+      "fields": [
+        {
+          "name": "attempt_id",
+          "type": {
+            "ref": "app.id"
+          },
+          "required": true
+        },
+        {
+          "name": "id",
+          "type": {
+            "ref": "app.id"
+          },
+          "required": true
+        },
+        {
+          "name": "job_id",
+          "type": {
+            "ref": "app.id"
+          },
+          "required": true
+        },
+        {
+          "name": "cursor",
+          "type": {
+            "ref": "app.counter"
+          },
+          "required": true
+        },
+        {
+          "name": "kind",
+          "type": {
+            "ref": "app.text"
+          },
+          "required": true
+        },
+        {
+          "name": "payload_ref",
+          "type": {
+            "optional": {
+              "ref": "app.text"
+            }
+          }
+        }
+      ],
+      "identity": [
+        "id"
+      ]
+    },
+    {
+      "version": 1,
+      "id": "app.question_state",
+      "kind": "enum",
+      "values": [
+        {
+          "value": "pending"
+        },
+        {
+          "value": "answered"
+        },
+        {
+          "value": "denied"
+        },
+        {
+          "value": "expired"
+        },
+        {
+          "value": "superseded"
+        }
+      ]
+    },
+    {
+      "version": 1,
+      "id": "app.attention_request",
+      "kind": "entity",
+      "description": "A persisted typed Pi question; answer is bound to the exact attempt, digest, expiry and workspace generation.",
+      "fields": [
+        {
+          "name": "id",
+          "type": {
+            "ref": "app.id"
+          },
+          "required": true
+        },
+        {
+          "name": "job_id",
+          "type": {
+            "ref": "app.id"
+          },
+          "required": true
+        },
+        {
+          "name": "attempt_id",
+          "type": {
+            "ref": "app.id"
+          },
+          "required": true
+        },
+        {
+          "name": "session_id",
+          "type": {
+            "ref": "app.id"
+          },
+          "required": true
+        },
+        {
+          "name": "client_id",
+          "type": {
+            "ref": "app.text"
+          },
+          "required": true
+        },
+        {
+          "name": "method",
+          "type": {
+            "ref": "app.text"
+          },
+          "required": true
+        },
+        {
+          "name": "request_digest",
+          "type": {
+            "ref": "app.text"
+          },
+          "required": true
+        },
+        {
+          "name": "state",
+          "type": {
+            "ref": "app.question_state"
+          },
+          "required": true
+        },
+        {
+          "name": "expires_at",
+          "type": {
+            "ref": "app.timestamp"
+          },
+          "required": true
+        }
+      ],
+      "identity": [
+        "id"
+      ]
+    },
+    {
+      "version": 1,
+      "id": "app.path_grant",
+      "kind": "entity",
+      "description": "Owner-approved canonical path, read/write mode and one-hour session scope. Old writers stop before a new explicit turn applies the mount.",
+      "fields": [
+        {
+          "name": "id",
+          "type": {
+            "ref": "app.id"
+          },
+          "required": true
+        },
+        {
+          "name": "session_id",
+          "type": {
+            "ref": "app.id"
+          },
+          "required": true
+        },
+        {
+          "name": "workspace_id",
+          "type": {
+            "ref": "app.id"
+          },
+          "required": true
+        },
+        {
+          "name": "origin_attempt_id",
+          "type": {
+            "ref": "app.id"
+          },
+          "required": true
+        },
+        {
+          "name": "canonical_path",
+          "type": {
+            "ref": "app.text"
+          },
+          "required": true
+        },
+        {
+          "name": "access",
+          "type": {
+            "ref": "app.access_mode"
+          },
+          "required": true
+        },
+        {
+          "name": "target",
+          "type": {
+            "ref": "app.text"
+          },
+          "required": true
+        },
+        {
+          "name": "expires_at",
+          "type": {
+            "ref": "app.timestamp"
+          },
+          "required": true
+        }
+      ],
+      "identity": [
+        "id"
+      ]
+    },
+    {
+      "version": 1,
+      "id": "app.sandbox_receipt",
+      "kind": "entity",
+      "description": "Checked pinned Docker image, exact mount targets/modes, non-root/read-only/capability/resource policy; saved with the job before prompt dispatch. Does not promise egress allowlisting, hard disk quotas or private internal paths.",
+      "fields": [
+        {
+          "name": "id",
+          "type": {
+            "ref": "app.id"
+          },
+          "required": true
+        },
+        {
+          "name": "session_id",
+          "type": {
+            "ref": "app.id"
+          },
+          "required": true
+        },
+        {
+          "name": "workspace_id",
+          "type": {
+            "ref": "app.id"
+          },
+          "required": true
+        },
+        {
+          "name": "image_id",
+          "type": {
+            "ref": "app.text"
+          },
+          "required": true
+        },
+        {
+          "name": "workspace_generation",
+          "type": {
+            "ref": "app.counter"
+          },
+          "required": true
+        },
+        {
+          "name": "checked_at",
+          "type": {
+            "ref": "app.timestamp"
+          },
+          "required": true
+        }
+      ],
+      "identity": [
+        "id"
+      ]
+    },
+    {
+      "id": "app.counter",
+      "kind": "scalar",
+      "version": 1,
+      "base": "number",
+      "description": "Non-negative generation or durable event cursor."
+    }
+  ]
+}

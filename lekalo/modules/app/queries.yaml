@@ -1,0 +1,113 @@
+{
+  "schema_version": "0.2.16",
+  "definitions": [
+    {
+      "id": "app.list_agents",
+      "kind": "query",
+      "version": 1,
+      "reads": [
+        "app.agent"
+      ],
+      "returns": {
+        "list": {
+          "ref": "app.agent"
+        }
+      }
+    },
+    {
+      "id": "app.list_models",
+      "kind": "query",
+      "version": 1,
+      "reads": [
+        "app.model",
+        "app.provider"
+      ],
+      "returns": {
+        "list": {
+          "ref": "app.model"
+        }
+      },
+      "description": "Client projection filters exact enabled, available and granted entries."
+    },
+    {
+      "id": "app.get_job",
+      "kind": "query",
+      "version": 1,
+      "reads": [
+        "app.job"
+      ],
+      "returns": {
+        "ref": "app.job"
+      }
+    },
+    {
+      "id": "app.get_events",
+      "kind": "query",
+      "version": 1,
+      "reads": [
+        "app.execution_event"
+      ],
+      "returns": {
+        "list": {
+          "ref": "app.execution_event"
+        }
+      }
+    },
+    {
+      "version": 1,
+      "id": "app.list_workspaces",
+      "kind": "query",
+      "description": "Client-owned workspace projection; owner sees explicit canonical grant paths.",
+      "reads": [
+        "app.workspace"
+      ],
+      "returns": {
+        "list": {
+          "ref": "app.workspace"
+        }
+      }
+    },
+    {
+      "version": 1,
+      "id": "app.list_questions",
+      "kind": "query",
+      "description": "Pending client-owned typed questions; additional-path decisions belong to the human owner.",
+      "reads": [
+        "app.attention_request"
+      ],
+      "returns": {
+        "list": {
+          "ref": "app.attention_request"
+        }
+      }
+    },
+    {
+      "version": 1,
+      "id": "app.list_sessions",
+      "kind": "query",
+      "description": "Durable session bindings and latest sandbox receipt.",
+      "reads": [
+        "app.session"
+      ],
+      "returns": {
+        "list": {
+          "ref": "app.session"
+        }
+      }
+    },
+    {
+      "version": 1,
+      "id": "app.list_jobs",
+      "kind": "query",
+      "description": "Recent client-owned jobs and authoritative terminal receipts.",
+      "reads": [
+        "app.job"
+      ],
+      "returns": {
+        "list": {
+          "ref": "app.job"
+        }
+      }
+    }
+  ]
+}

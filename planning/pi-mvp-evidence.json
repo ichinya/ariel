@@ -1,0 +1,212 @@
+{
+  "observedAt": "2026-09-30 06:35:36 UTC",
+  "scope": "Planning/model/transport preflight only; Ariel service, UI and sandbox have not been implemented.",
+  "commands": {
+    "lekalo": "LEKALO_BIN=<built-lekalo-executable> node scripts/check-lekalo.mjs",
+    "pi": "node scripts/probe-pi-rpc.mjs <installed-pi-package-directory>"
+  },
+  "lekalo": {
+    "status": "pass",
+    "lekaloVersion": "0.5.0",
+    "modelDefinitionCount": 58,
+    "canonicalLoadSha256": "2d25f10ce98c4e102d911d108a386f6d2907fe082542c606cadca6359be0a1ec",
+    "checks": [
+      "canonical-ir-deterministic",
+      "semantic-validation",
+      "lock-fresh",
+      "graph-command-effect-endpoint",
+      "inspect-model",
+      "context-with-scenario",
+      "unresolved-effect-rejected",
+      "no-cache-leaves-fixture-clean",
+      "doctor-required-gates"
+    ],
+    "doctorVerdict": "degraded",
+    "doctorFindings": [
+      {
+        "id": "integrations.hlv",
+        "reason": "not-supplied"
+      }
+    ],
+    "contextGaps": [
+      {
+        "gap": "detected-effects-absent"
+      },
+      {
+        "gap": "error-contracts-unrepresentable"
+      },
+      {
+        "gap": "no-policies"
+      }
+    ],
+    "limits": [
+      "Model checks only; runtime implementation, permission enforcement and Rust code generation are not verified"
+    ]
+  },
+  "lekaloBinarySha256": "582e1185589f081bf3f793770e9a667d534cf236a5fd908d042c212aa83f8908",
+  "lockUpdate": {
+    "status": "valid",
+    "operation": "update",
+    "mode": "apply",
+    "changed": true,
+    "lockDigest": "sha256:d4fa9873b0055a23ab2e9959f729a7ab924f2bd8b9b876f2738cee47b59ec841",
+    "resolverVersion": "0.2.16",
+    "planId": "sha256:2f7c0e0952411b46cb491a7df4731f3748cc3ca837668a3877e7681e9f8f0ab3",
+    "beforeDigest": "sha256:403016d76a53d77aad35898a01cb950b7e67fb17a9ae9c2e7f8b3108366814cf",
+    "afterDigest": "sha256:d4fa9873b0055a23ab2e9959f729a7ab924f2bd8b9b876f2738cee47b59ec841",
+    "changes": []
+  },
+  "pi": {
+    "status": "pass",
+    "package": "@earendil-works/pi-coding-agent",
+    "version": "0.87.1",
+    "cliSha256": "e79626f2dd6f94aa45d30f3fa63cd84319a6eefcd150b353cfaf274366926774",
+    "nodeVersion": "v24.13.0",
+    "platform": "win32",
+    "checks": [
+      "isolated-offline-start",
+      "catalog-two-synthetic-models",
+      "exact-model-selection",
+      "state-confirmation",
+      "unknown-model-rejected-without-switch",
+      "idle-abort",
+      "stdin-eof-shutdown",
+      "known-catalog-metadata-without-auth-or-network"
+    ],
+    "catalog": {
+      "knownProviders": 42,
+      "knownModels": 1497,
+      "rpcAvailableModels": 2,
+      "syntheticModels": 2
+    },
+    "promptsSent": 0,
+    "realCredentialsSupplied": false,
+    "stderrBytes": 0,
+    "limits": [
+      "No model response, active abort, sandbox, tools or process-tree guarantee tested"
+    ]
+  },
+  "staticChecks": {
+    "nodeSyntax": "pass",
+    "gitDiffCheck": "pass"
+  },
+  "issueComments": [
+    {
+      "issue": 1,
+      "id": 5905555779,
+      "url": "https://github.com/ichinya/ariel/issues/1#issuecomment-5905555779",
+      "createdAt": "2026-09-30T06:34:39Z",
+      "marker": "<!-- ariel-pi-mvp:2026-09-30:roadmap -->",
+      "bodyMatches": true,
+      "verifiedByReadback": true
+    },
+    {
+      "issue": 3,
+      "id": 5905556121,
+      "url": "https://github.com/ichinya/ariel/issues/3#issuecomment-5905556121",
+      "createdAt": "2026-09-30T06:34:41Z",
+      "marker": "<!-- ariel-pi-mvp:2026-09-30:rust -->",
+      "bodyMatches": true,
+      "verifiedByReadback": true
+    },
+    {
+      "issue": 13,
+      "id": 5905556442,
+      "url": "https://github.com/ichinya/ariel/issues/13#issuecomment-5905556442",
+      "createdAt": "2026-09-30T06:34:42Z",
+      "marker": "<!-- ariel-pi-mvp:2026-09-30:sandbox -->",
+      "bodyMatches": true,
+      "verifiedByReadback": true
+    },
+    {
+      "issue": 15,
+      "id": 5905556671,
+      "url": "https://github.com/ichinya/ariel/issues/15#issuecomment-5905556671",
+      "createdAt": "2026-09-30T06:34:43Z",
+      "marker": "<!-- ariel-pi-mvp:2026-09-30:profiles -->",
+      "bodyMatches": true,
+      "verifiedByReadback": true
+    },
+    {
+      "issue": 17,
+      "id": 5905556893,
+      "url": "https://github.com/ichinya/ariel/issues/17#issuecomment-5905556893",
+      "createdAt": "2026-09-30T06:34:44Z",
+      "marker": "<!-- ariel-pi-mvp:2026-09-30:path-permission -->",
+      "bodyMatches": true,
+      "verifiedByReadback": true
+    },
+    {
+      "issue": 21,
+      "id": 5905557204,
+      "url": "https://github.com/ichinya/ariel/issues/21#issuecomment-5905557204",
+      "createdAt": "2026-09-30T06:34:46Z",
+      "marker": "<!-- ariel-pi-mvp:2026-09-30:workspace -->",
+      "bodyMatches": true,
+      "verifiedByReadback": true
+    },
+    {
+      "issue": 22,
+      "id": 5905557528,
+      "url": "https://github.com/ichinya/ariel/issues/22#issuecomment-5905557528",
+      "createdAt": "2026-09-30T06:34:47Z",
+      "marker": "<!-- ariel-pi-mvp:2026-09-30:acceptance -->",
+      "bodyMatches": true,
+      "verifiedByReadback": true
+    },
+    {
+      "issue": 26,
+      "id": 5905557794,
+      "url": "https://github.com/ichinya/ariel/issues/26#issuecomment-5905557794",
+      "createdAt": "2026-09-30T06:34:48Z",
+      "marker": "<!-- ariel-pi-mvp:2026-09-30:pi-rpc -->",
+      "bodyMatches": true,
+      "verifiedByReadback": true
+    },
+    {
+      "issue": 30,
+      "id": 5905558223,
+      "url": "https://github.com/ichinya/ariel/issues/30#issuecomment-5905558223",
+      "createdAt": "2026-09-30T06:34:50Z",
+      "marker": "<!-- ariel-pi-mvp:2026-09-30:catalog -->",
+      "bodyMatches": true,
+      "verifiedByReadback": true
+    },
+    {
+      "issue": 40,
+      "id": 5905558575,
+      "url": "https://github.com/ichinya/ariel/issues/40#issuecomment-5905558575",
+      "createdAt": "2026-09-30T06:34:51Z",
+      "marker": "<!-- ariel-pi-mvp:2026-09-30:worktree -->",
+      "bodyMatches": true,
+      "verifiedByReadback": true
+    },
+    {
+      "issue": 44,
+      "id": 5905558855,
+      "url": "https://github.com/ichinya/ariel/issues/44#issuecomment-5905558855",
+      "createdAt": "2026-09-30T06:34:52Z",
+      "marker": "<!-- ariel-pi-mvp:2026-09-30:api -->",
+      "bodyMatches": true,
+      "verifiedByReadback": true
+    },
+    {
+      "issue": 55,
+      "id": 5905559122,
+      "url": "https://github.com/ichinya/ariel/issues/55#issuecomment-5905559122",
+      "createdAt": "2026-09-30T06:34:54Z",
+      "marker": "<!-- ariel-pi-mvp:2026-09-30:settings -->",
+      "bodyMatches": true,
+      "verifiedByReadback": true
+    },
+    {
+      "issue": 74,
+      "id": 5905559402,
+      "url": "https://github.com/ichinya/ariel/issues/74#issuecomment-5905559402",
+      "createdAt": "2026-09-30T06:34:55Z",
+      "marker": "<!-- ariel-pi-mvp:2026-09-30:test-client -->",
+      "bodyMatches": true,
+      "verifiedByReadback": true
+    }
+  ]
+}

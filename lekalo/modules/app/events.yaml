@@ -1,0 +1,110 @@
+{
+  "schema_version": "0.2.16",
+  "definitions": [
+    {
+      "id": "app.provider_configured",
+      "kind": "event",
+      "version": 1,
+      "description": "Observable result of the provider_configured transition.",
+      "payload": [
+        {
+          "name": "correlation_id",
+          "type": {
+            "ref": "app.text"
+          },
+          "required": true
+        }
+      ]
+    },
+    {
+      "id": "app.model_configured",
+      "kind": "event",
+      "version": 1,
+      "description": "Observable result of the model_configured transition.",
+      "payload": [
+        {
+          "name": "correlation_id",
+          "type": {
+            "ref": "app.text"
+          },
+          "required": true
+        }
+      ]
+    },
+    {
+      "id": "app.workspace_prepared",
+      "kind": "event",
+      "version": 1,
+      "description": "Observable result of the workspace_prepared transition.",
+      "payload": [
+        {
+          "name": "correlation_id",
+          "type": {
+            "ref": "app.text"
+          },
+          "required": true
+        }
+      ]
+    },
+    {
+      "id": "app.session_started",
+      "kind": "event",
+      "version": 1,
+      "description": "Observable result of the session_started transition.",
+      "payload": [
+        {
+          "name": "correlation_id",
+          "type": {
+            "ref": "app.text"
+          },
+          "required": true
+        }
+      ]
+    },
+    {
+      "id": "app.job_submitted",
+      "kind": "event",
+      "version": 1,
+      "description": "Observable result of the job_submitted transition.",
+      "payload": [
+        {
+          "name": "correlation_id",
+          "type": {
+            "ref": "app.text"
+          },
+          "required": true
+        }
+      ]
+    },
+    {
+      "id": "app.job_cancel_requested",
+      "kind": "event",
+      "version": 1,
+      "description": "Observable result of the job_cancel_requested transition.",
+      "payload": [
+        {
+          "name": "correlation_id",
+          "type": {
+            "ref": "app.text"
+          },
+          "required": true
+        }
+      ]
+    },
+    {
+      "id": "app.path_access_decided",
+      "kind": "event",
+      "version": 1,
+      "description": "Observable result of the path_access_decided transition.",
+      "payload": [
+        {
+          "name": "correlation_id",
+          "type": {
+            "ref": "app.text"
+          },
+          "required": true
+        }
+      ]
+    }
+  ]
+}
